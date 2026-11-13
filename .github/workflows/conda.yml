@@ -1,0 +1,77 @@
+name: Conda CPU package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  QUETZ_SERVER_URL: ${{ vars.QUETZ_SERVER_URL }}
+  CONDA_CHANNEL: baymax
+  RATTLER_ZSTD: 'true'
+  RATTLER_SHARDED: 'false'
+  RATTLER_BZ2: 'false'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read and validate version
+        run: |
+          set -euo pipefail
+          VERSION=0.0.0.dev0
+          BUILD=0
+          if [[ "$GITHUB_EVENT_NAME" == push ]]; then
+            tag_pattern='^v([0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+|\.(dev|post)[0-9]+)?)(-build(0|[1-9][0-9]*))?$'
+            if [[ "$GITHUB_REF" != refs/tags/* || ! "$GITHUB_REF_NAME" =~ $tag_pattern ]]; then
+              echo "Invalid release tag: $GITHUB_REF_NAME" >&2
+              exit 1
+            fi
+            VERSION="${BASH_REMATCH[1]}"
+            BUILD="${BASH_REMATCH[6]:-0}"
+          fi
+          printf 'VERSION=%s\nBUILD=%s\n' "$VERSION" "$BUILD" >> "$GITHUB_ENV"
+          printf 'Building unidock-agent version=%s build=%s\n' "$VERSION" "$BUILD"
+
+      - name: Install rattler-build
+        uses: prefix-dev/rattler-build-action@v0.2.39
+        with:
+          setup-only: true
+          rattler-build-version: v0.55.1
+
+      - name: Build and test Conda package
+        run: |
+          set -euo pipefail
+          : "${QUETZ_SERVER_URL:?Set the QUETZ_SERVER_URL repository variable}"
+          rattler-build build -r conda-recipe \
+            --target-platform linux-64 \
+            --package-format conda \
+            --test native \
+            --output-dir dist/conda \
+            -c "${QUETZ_SERVER_URL%/}/get/$CONDA_CHANNEL" \
+            -c conda-forge
+
+      - name: Upload to Quetz
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          QUETZ_API_KEY: ${{ secrets.QUETZ_API_KEY }}
+        run: |
+          set -euo pipefail
+          : "${QUETZ_API_KEY:?Set the QUETZ_API_KEY repository secret}"
+          file="dist/conda/linux-64/unidock-agent-${VERSION}-cpu_py310_${BUILD}.conda"
+          test -f "$file"
+          rattler-build upload quetz \
+            --url "${QUETZ_SERVER_URL%/}/" \
+            --channel "$CONDA_CHANNEL" \
+            "$file"

@@ -14,6 +14,7 @@ target_include_directories(${THIRD_NAME_CATCH2} PUBLIC .)
 set(THIRD_NAME_SQLITE3 sqlite3 PARENT_SCOPE)
 add_library(sqlite3 OBJECT sqlite3/sqlite3.c)
 target_include_directories(sqlite3 PUBLIC sqlite3/)
+target_link_libraries(sqlite3 PUBLIC ${CMAKE_DL_LIBS})
 set_target_properties(sqlite3 PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     C_STANDARD 11)
