@@ -71,27 +71,12 @@ jobs:
           : "${QUETZ_API_KEY:?Set the QUETZ_API_KEY repository secret}"
           file="dist/conda/linux-64/unidock-agent-${VERSION}-cpu_py310_${BUILD}.conda"
           test -f "$file"
-          channel_api="${QUETZ_SERVER_URL%/}/api/channels/$CONDA_CHANNEL"
-          # Register the name before sending the first version to the package files API.
-          status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
-            --max-time 30 "$channel_api/packages/unidock-agent")
-          case "$status" in
-            200) ;;
-            404)
-              status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
-                --max-time 30 --header "X-API-Key: $QUETZ_API_KEY" \
-                --json '{"name":"unidock-agent","summary":"Uni-Dock CPU molecular docking engine and processing workflows"}' \
-                "$channel_api/packages")
-              [[ "$status" == 201 || "$status" == 409 ]] || { echo "Quetz registration HTTP $status"; exit 1; }
-              ;;
-            *) echo "Quetz package lookup HTTP $status"; exit 1 ;;
-          esac
           curl --fail-with-body --show-error --silent \
             --connect-timeout 20 --max-time 600 \
             --header "X-API-Key: $QUETZ_API_KEY" \
             --form "files=@$file" --form 'force=false' \
             --write-out '\nQuetz HTTP %{http_code}, uploaded %{size_upload} bytes in %{time_total}s\n' \
-            "$channel_api/packages/unidock-agent/files/"
+            "${QUETZ_SERVER_URL%/}/api/channels/$CONDA_CHANNEL/packages/unidock-agent/files/"
           download="$RUNNER_TEMP/${file##*/}"
           curl --fail --location --silent --show-error --max-time 120 --output "$download" \
             "${QUETZ_SERVER_URL%/}/get/$CONDA_CHANNEL/linux-64/${file##*/}"
