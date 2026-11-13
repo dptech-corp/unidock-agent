@@ -1,0 +1,97 @@
+context:
+  version: ${{ env.get("VERSION", default="0.0.0") }}
+  build_number: ${{ env.get("BUILD", default="0") | int }}
+
+package:
+  name: unidock-agent
+  version: ${{ version }}
+
+source:
+  path: ..
+  filter:
+    include:
+      - unidock/**
+      - pyproject.toml
+      - README.md
+      - LICENSE
+    exclude:
+      - unidock/unidock_processing/**/test*/**
+
+build:
+  number: ${{ build_number }}
+  string: cpu_py310_${{ build_number }}
+  skip: target_platform != "linux-64"
+  script: build.sh
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - sysroot_linux-64 2.17.*
+    - cmake
+    - ninja
+  host:
+    - python 3.10.*
+    - pip
+    - setuptools
+    - setuptools-scm
+    - scikit-build-core
+    - pybind11
+    - wheel
+    # Generate the torsion library before shipping a read-only installation.
+    - dill
+    - rdkit
+    - mdanalysis
+    - msys_viparr_lpsolve55
+  run:
+    - python 3.10.*
+    - _openmp_mutex * *_gnu
+    - pyyaml
+    - pydantic >=2
+    - pathos
+    - numpy
+    - scipy
+    - pandas
+    - networkx
+    - rdkit
+    - mdanalysis
+    - pdbfixer
+    - openmm
+    - msys_viparr_lpsolve55
+    - ambertools_stable
+    - pytorch * cpu*
+  run_constraints:
+    - unidock2-preview <0a0
+    - unidock2 <0a0
+
+tests:
+  - script:
+      - ud2 --version
+      - >-
+        python -c "import subprocess;
+        output = subprocess.check_output(['unidock2', '--version'], text=True);
+        print(output);
+        assert output.splitlines()[-1] == 'unidock2 ${{ version }}', output"
+      - unidock2 docking --help
+      - >-
+        python -c "from unidock_engine.api.python import pipeline;
+        from unidock_processing.core import engine;
+        print(pipeline.__file__, engine.__file__)"
+      - >-
+        python -c "from importlib.metadata import entry_points;
+        plugins = {ep.name: ep for ep in entry_points(group='unidock2.plugins')};
+        assert {'template', 'covalent'} <= plugins.keys(), plugins;
+        [plugins[name].load() for name in ('template', 'covalent')]"
+  - package_contents:
+      files:
+        - bin/ud2
+        - bin/unidock2
+        - lib/python3.10/site-packages/unidock_processing/torsion_library/data/torsion_library.pkl
+
+about:
+  summary: unidock-agent CPU molecular docking engine and processing workflows
+  license: Apache-2.0
+  license_file:
+    - LICENSE
+    - unidock/unidock_engine/NOTICE
+    - unidock/unidock_processing/cnn_rescore/weights/NOTICE
