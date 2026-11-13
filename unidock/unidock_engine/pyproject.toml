@@ -1,0 +1,33 @@
+[build-system]
+requires = [ # packages
+    "scikit-build-core",
+    "pybind11",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "unidock_engine"
+description = "Uni-Dock2 molecular docking engine"
+readme = "README.md"
+authors = [
+    {name = "DP Uni-Dock2 Team"}
+]
+license = {text = "Apache-2.0"}
+classifiers = [
+    "Programming Language :: C++",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["version"]
+
+[tool.scikit-build]
+cmake.define = {"BUILD_API"="ON"}  # -D
+build.tool-args = ["-j4"] # for make/ninja
+wheel.install-dir = "unidock_engine/api/python" # under site-packages
+
+[tool.scikit-build.metadata.version]
+# the version is VERSION_NUMBER in CMakeLists.txt (what `ud2 --version` prints); without a provider a dynamic version
+# makes `pip install` fail with "project.version is not specified"
+provider = "scikit_build_core.metadata.regex"
+input = "CMakeLists.txt"
+regex = 'set\(VERSION_NUMBER (?P<value>[0-9.]+)\)'

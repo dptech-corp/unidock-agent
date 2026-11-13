@@ -1,0 +1,31 @@
+Required:
+  receptor: 1EWL_prepared.pdb
+  ligand: covalent_mol.sdf
+  ligand_batch: null
+  center: [8.411, 13.047, 6.811]
+Advanced:
+  exhaustiveness: 512
+  randomize: true
+  mc_steps: 20
+  opt_steps: -1
+  refine_steps: 5
+  num_pose: 10
+  rmsd_limit: 1.0
+  energy_range: 3.0
+  seed: 12345
+  use_tor_lib: false
+Hardware:
+  gpu_device_id: 0
+Settings:
+  box_size: [30.0, 30.0, 30.0]
+  task: screen
+  search_mode: balance
+Preprocessing:
+  template_docking: false
+  reference_sdf_file_name: null
+  core_atom_mapping_dict_list: null
+  covalent_ligand: true
+  covalent_residue_atom_info_list: [["", "CYX", 25, "CA"], ["", "CYX", 25, "CB"], ["", "CYX", 25, "SG"]]
+  preserve_receptor_hydrogen: true
+  temp_dir_name: /tmp
+  output_docking_pose_sdf_file_name: unidock2_pose.sdf

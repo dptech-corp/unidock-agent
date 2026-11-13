@@ -1,0 +1,11 @@
+source leaprc.protein.ff14SB
+source leaprc.DNA.OL15
+source leaprc.RNA.OL3
+source leaprc.gaff2
+source leaprc.water.tip3p
+
+receptor = loadPdb receptor_final.pdb
+
+saveAmberParm receptor receptor.prmtop receptor.inpcrd
+
+quit

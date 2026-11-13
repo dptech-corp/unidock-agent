@@ -1,0 +1,40 @@
+*.o
+__pycache__
+build/
+cmake-build-release/
+cmake-build-debug/
+.cache
+test/ligands
+test/results
+.vscode
+.idea
+unidock/unidock_engine/examples/
+unidock/build/
+unidock/example/screening_test/indata
+unidock/example/screening_test/result
+unidock/example/screening_test/def_ligands.txt
+unidock/example/screening_test/rundock.sh
+unidock/example/screening_test/unidock
+unidock/example/screening_test/fail_result
+unidock/example/screening_test/receptor_grids
+unidock/example/screening_test/unidock_root
+unidock/example/screening_test/test_dock
+unidock_tools/dist
+unidock_tools/dist/*
+*.egg-info
+torsion_library.pkl
+_version.py
+test_ud2
+test_conf.yaml
+setup.py.depre
+
+# PROTAC prep artifacts. run_protac_docking.py writes these into its --input-dir,
+# which now defaults to the bundled example, so a bare run would otherwise leave
+# untracked files inside examples/.
+examples/protac_docking/**/protac_ligand.dms
+examples/protac_docking/**/protac_receptor.dms
+examples/protac_docking/**/protac_temp_cursor.sdf
+examples/protac_docking/ud2_output/
+
+# benchmark scripts, records and baselines are kept outside the repository
+benchmarks/

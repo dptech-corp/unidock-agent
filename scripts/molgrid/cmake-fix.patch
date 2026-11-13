@@ -1,0 +1,43 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3ac2211..efbf0ed 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -17,7 +17,7 @@ option(BUILD_SHARED "Build shared library" ON)
+ option(BUILD_STATIC "Build static library" ON)
+ option(BUILD_COVERAGE "Build with code coverage" OFF)
+ 
+-if(${BUILD_CONTAINED_PYTHON}) 
++if(${BUILD_CONTAINED_PYTHON})
+   #if make a mostly statically linked python module, use static boost
+    set(BUILD_STATIC ON)
+    set(Boost_USE_STATIC_LIBS ON)
+@@ -54,21 +54,21 @@ set(CMAKE_CXX_STANDARD 14)
+ set(CMAKE_CUDA_STANDARD 14)
+ 
+ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+-    set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -Werror")
++    set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -Wno-error=overloaded-virtual")
+     set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
+     if (BUILD_COVERAGE)
+ 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -fprofile-arcs -ftest-coverage")
+     else()
+         set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g")
+-    endif()	
++    endif()
+ endif()
+ 
+-if(CUDA_VERSION_MAJOR LESS 11)
+-#compile for all major architectures >= 35
+- set(CMAKE_CUDA_ARCHITECTURES 35 50 60 70 75)
+-else()
+- set(CMAKE_CUDA_ARCHITECTURES 52 60 70 75 80)
+-endif()
++# if(CUDA_VERSION_MAJOR LESS 11)
++# #compile for all major architectures >= 35
++#  set(CMAKE_CUDA_ARCHITECTURES 35 50 60 70 75)
++# else()
++#  set(CMAKE_CUDA_ARCHITECTURES 52 60 70 75 80)
++# endif()
+ 
+ set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -g -lineinfo")
+ set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -g -G")

@@ -1,0 +1,62 @@
+# unidock2 configuration YAML (`unidock2 docking -cf this.yaml`). Every value below is the CLI default
+# (unidock_processing/io/yaml.py), so copying this file unchanged gives a default run.
+# Relative paths resolve against the directory unidock2 is started in, not this file's directory.
+# Check before running:  python <skill>/scripts/check_config.py this.yaml [-r ...] [-l ...] [-c X Y Z]
+
+Required:
+  receptor: receptor.dms        # PDB or DMS; -r overrides. Prepare a DMS once: unidock2 protein_prep -r x.pdb -o x.dms
+  ligand: ligand.sdf            # one SDF (any number of records) or DMS; -l overrides
+  ligand_batch: null            # text file, one SDF path per line; -lb overrides; ligand + ligand_batch are combined
+  center: [0.0, 0.0, 0.0]       # box centre; -c overrides; (0, 0, 0) means "not given" (template runs then use
+                                # the reference ligand's centre, other runs dock at the origin)
+
+Advanced:
+  # exhaustiveness: 512         # MC chains per ligand; used only with search_mode: free
+  # mc_steps: 40                # MC steps per chain; used only with search_mode: free
+  randomize: true               # randomise the input pose first (template / covalent runs force it off)
+  opt_steps: -1                 # local optimisation (BFGS) steps; -1 = per-ligand heuristic
+  refine_steps: 5               # refinement steps after clustering
+  num_pose: 10                  # poses written per ligand
+  rescore_pool: 10              # cluster representatives the pose pass re-ranks (max with num_pose)
+  rmsd_limit: 1.0               # clustering RMSD between written poses (A)
+  energy_range: 5.0             # written poses lie within this many kcal/mol of the best
+  seed: 1234567
+  use_tor_lib: false            # sample torsions from the torsion library ranges only
+
+Hardware:
+  n_cpu: null                   # workers for ligand preparation (null = all); the CPU engine always uses every core
+  gpu_device_id: 0              # also the device of the CNN stage
+
+Settings:
+  box_size: [30.0, 30.0, 30.0]  # A
+  task: screen                  # screen | score (input pose) | optimize (local, input pose) | mc | randomize
+  search_mode: balance          # fast | balance | detail overwrite exhaustiveness and mc_steps; free keeps them
+  cnn_rescore: false            # gnina pose-CNN re-ranking (same as --cnn_rescore); needs CUDA torch
+
+Preprocessing:
+  preserve_receptor_hydrogen: false   # keep the PDB's hydrogens (fepfixer route only)
+  temp_dir_name: /tmp           # must exist; /tmp work dirs are deleted after the run, any other one is kept
+  output_docking_pose_sdf_file_name: unidock2_pose.sdf   # -o overrides
+  output_receptor_dms_file_name: receptor_parameterized.dms   # protein_prep only
+
+# Built-in plugins; leave them out for free docking.
+template:                       # core-constrained docking (ud2-template-docking)
+  template_docking: false
+  reference_sdf_file_name: null # reference pose; required when template_docking is true
+  core_atom_mapping_dict_list: null   # null = automatic MCS; or one {reference_idx: query_idx} map per ligand
+
+covalent:                       # covalent docking (ud2-covalent-docking); the ligand SDF carries the residue atoms
+  covalent_ligand: false
+  covalent_residue_atom_info_list: null   # [[chain, resname, resid, atom], ...] anchor, bond start, bond end
+
+# Needs the external ud2align package; see the ud2-bias-align skill.
+# bias:
+#   template_sdf: template.sdf  # setting it makes the run biased
+#   aligner: zalign             # zalign | hbond | hbond_charge
+#   bias_k: 0.05
+#   bias_type: align            # align | pos
+#   ref_atom_indices: null      # restrict the bias to these template atoms; null = every atom the aligner pairs
+#   translate: true             # move each ligand to the template centroid first
+#   ring_bias: false            # aromatic ring overlay (needs bias_type align)
+#   ref_ring_indices: null      # restrict the ring bias to these template rings; null = every ring paired
+#   ring: {k: null, s: null, d0: null}   # ring-term parameters; null keeps the engine default (30, 3, 1)

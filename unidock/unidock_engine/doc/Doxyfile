@@ -1,0 +1,47 @@
+# 项目相关设置
+PROJECT_NAME = "UD2"
+PROJECT_NUMBER = "2.0.a"
+PROJECT_BRIEF = "Uni-Dock 2.0"
+
+# 需要生成文档的代码所在目录
+INPUT = ../src  \
+		../bin
+RECURSIVE = YES  # YES则检查INPUT下所有目录和文件，NO则只会检查INPUT
+OUTPUT_DIRECTORY = # 默认输出文件夹就是执行的doc文件夹
+
+# 将 unit test 作为 examples 加入文档
+EXAMPLE_PATH = ../test
+EXAMPLE_RECURSIVE = YES
+
+
+# 要HTML不要latex，用中文
+GENERATE_HTML = YES
+GENERATE_LATEX = NO
+OUTPUT_LANGUAGE = Chinese  #支持生成中文文档（框架字句）
+DOXYFILE_ENCODING = UTF-8
+
+
+# 提取信息
+# 所有实体，除了默认的类意外，还有函数和变量的注释
+EXTRACT_ALL = YES
+EXTRACT_STATIC = YES # 类的静态成员
+EXTRACT_PRIVATE = YES  # 类的私有成员
+
+# 函数调用关系
+REFERENCES_RELATION = YES
+REFERENCES_BY_RELATION = YES
+REFERENCES_LINK_SOURCE = YES
+
+# 生成关系图
+HAVE_DOT = YES
+CALL_GRAPH = YES
+CALLER_GRAPH = YES
+
+
+# 细节
+TYPEDEF_HIDES_STRUCT = YES # 使用 typedef 定义的名字而非原名
+HIDE_SCOPE_NAMES = YES # C++的scope名是否展示
+SOURCE_BROWSER = NO # 展示源代码
+
+# 树形导航栏
+GENERATE_TREEVIEW      = NO

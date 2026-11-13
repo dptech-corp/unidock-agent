@@ -1,0 +1,40 @@
+diff --git a/python/setup.py b/python/setup.py
+index 1bd7851..73d000b 100644
+--- a/python/setup.py
++++ b/python/setup.py
+@@ -14,7 +14,8 @@ def git_pep440_version(path):
+     return version_tag + version_tail.replace('-', '.dev', 1).replace('-', '+', 1)
+ 
+ try:
+-    version = git_pep440_version(os.path.dirname(os.path.realpath(__file__)))
++    # version = git_pep440_version(os.path.dirname(os.path.realpath(__file__)))
++    version = os.environ["PKG_VERSION"]
+ except subprocess.CalledProcessError:
+     sys.exit('Cannot obtain version number from git.')
+ 
+@@ -31,7 +32,7 @@ setup(
+   'generation has several options that facilitate obtaining good performance '
+   'from machine learning algorithms, including features like data augmentation '
+   'and resampling.',
+-  version     = version, 
++  version     = version,
+   author='David Ryan Koes and Jocelyn Sunseri',
+   author_email='dkoes@pitt.edu',
+   classifiers=[
+@@ -43,7 +44,7 @@ setup(
+ 
+       'License :: OSI Approved :: Apache Software License',
+       'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+-  
++
+       'Programming Language :: C++',
+       'Programming Language :: Python :: 3',
+   ],
+@@ -51,7 +52,6 @@ setup(
+   project_urls = {'Documentation': 'http://gnina.github.io/libmolgrid'},
+   install_requires = [
+                  'numpy>=1.16.2',
+-                 'pytest',
+                  'pyquaternion',
+                  'importlib-metadata >= 1.0 ; python_version < "3.8"'
+       ],

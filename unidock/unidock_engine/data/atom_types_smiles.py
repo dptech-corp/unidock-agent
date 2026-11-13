@@ -1,0 +1,21 @@
+ATOM_TYPE_DEFINITION_LIST = [
+    {'smarts': '[#1]',                                                     'atype': 'H'},
+    {'smarts': '[#6]',                                                     'atype': 'CH'},
+    {'smarts': '[#6;$(#6[#5,#7,#8,#9,#14,#15,#16,#17,#34,#35,#53])]',      'atype': 'CP'},
+    {'smarts': '[#7]',                                                     'atype': 'NP'},
+    {'smarts': '[#7;!H0]',                                                 'atype': 'ND'},
+    {'smarts': '[#7;!$([#7X3v3][a]);!$([#7X3v3][#6X3v4]);!$([#7+1])]',     'atype': 'NA'},
+    {'smarts': '[#7;!$([#7X3v3][a]);!$([#7X3v3][#6X3v4]);!$([#7+1]);!H0]', 'atype': 'NDA'},
+    # todo: OP
+    {'smarts': '[O;!H0]',                                                  'atype': 'OD'},
+    {'smarts': '[#8]',                                                     'atype': 'OA'},
+    {'smarts': '[O;!H0]',                                                  'atype': 'ODA'},
+    {'smarts': '[#9]',                                                     'atype': 'F_H'},
+    {'smarts': '[#14]',                                                    'atype': 'Si'},
+    {'smarts': '[#15]',                                                    'atype': 'P_P'},
+    {'smarts': '[#16]',                                                    'atype': 'S_P'},
+    {'smarts': '[#17]',                                                    'atype': 'Cl_H'},
+    {'smarts': '[#35]',                                                    'atype': 'Br_H'},
+    {'smarts': '[#53]',                                                    'atype': 'I_H'},
+    {'smarts': '[#12, #20, #25, #26, #30]',                                'atype': 'Met_D'},
+]

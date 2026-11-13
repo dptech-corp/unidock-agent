@@ -1,0 +1,5 @@
+Pose-scoring CNN weights from the gnina project (https://github.com/gnina/models, pytorch/weights),
+Apache License 2.0, Copyright the gnina authors (University of Pittsburgh). Files: dense.pt, dense_3.pt,
+crossdock_default2018.pt, general_default2018_3.pt, redock_default2018.pt (the gnina 1.0 default ensemble).
+Network definitions in ../models.py are adapted from pytorch/dense_model.py and pytorch/default2018_model.py of the same
+repository. References: Ragoza et al., J. Chem. Inf. Model. 2017, 57, 942; McNutt et al., J. Cheminform. 2021, 13, 43.

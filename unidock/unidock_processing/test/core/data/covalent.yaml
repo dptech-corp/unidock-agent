@@ -1,0 +1,37 @@
+Advanced:
+  seed: 1234567
+  exhaustiveness: 4
+  randomize: true
+  mc_steps: 1
+  opt_steps: 0
+  refine_steps: 1
+  rmsd_limit: 1.0
+  num_pose: 10
+  rescore_pool: 10
+  energy_range: 5.0
+  tor_lib: false
+  ff_minimize_steps: 0
+  ligand_dms: /work/run1/ligand_enriched.dms
+  protein_dms: /work/run1/receptor_enriched.dms
+
+Hardware:
+  ncpu: 8
+
+Settings:
+  task: screen
+  search_mode: free
+  constraint_docking: true
+  decomp: false
+  center_x: 8.411
+  center_y: 13.047
+  center_z: 6.811
+  size_x: 30.0
+  size_y: 30.0
+  size_z: 30.0
+
+Outputs:
+  dir: /work/run1/unidock2_output
+
+Inputs:
+  ligand_dms_full: /work/run1/ligand_enriched.dms
+  receptor_dms_full: /work/run1/receptor_enriched.dms

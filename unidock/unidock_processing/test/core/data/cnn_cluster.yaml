@@ -1,0 +1,38 @@
+Advanced:
+  seed: 42
+  exhaustiveness: 64
+  randomize: false
+  mc_steps: 20
+  opt_steps: -1
+  refine_steps: 3
+  rmsd_limit: 2.0
+  num_pose: 10
+  rescore_pool: 10
+  energy_range: 3.0
+  tor_lib: true
+  ff_minimize_steps: 100
+  ligand_dms: /work/run1/ligand_merged.dms
+  protein_dms: /work/run1/receptor_enriched.dms
+  cluster_atom_indices: [[0, 1, 2], [], []]
+
+Hardware:
+  ncpu: 8
+
+Settings:
+  task: dock
+  search_mode: free
+  constraint_docking: false
+  decomp: true
+  center_x: 0.5
+  center_y: -1.25
+  center_z: 10.0
+  size_x: 20.0
+  size_y: 22.5
+  size_z: 25.0
+
+Outputs:
+  dir: /work/run1/unidock2_output
+
+Inputs:
+  ligand_dms_full: /work/run1/ligand_merged.dms
+  receptor_dms_full: /work/run1/receptor_enriched.dms

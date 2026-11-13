@@ -1,0 +1,106 @@
+[build-system]
+requires = [
+    "setuptools>=64",
+    "setuptools-scm>=8",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unidock_processing"
+description = "Uni-Dock molecular docking Processor"
+readme = "README.md"
+authors = [
+    {name = "DP Uni-Dock2 Team"}
+]
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dynamic = ["version"]
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0"
+
+[project.scripts]
+unidock2 = "unidock_processing.main:main"
+
+[project.entry-points."unidock2.plugins"]
+template = "unidock_processing.plugins.template.plugin:TemplatePlugin"
+covalent = "unidock_processing.plugins.covalent.plugin:CovalentPlugin"
+
+[tool.setuptools.packages.find]
+where = ["unidock"]
+include = ["unidock_processing*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.xml", "*.in", "*.pt", "NOTICE"]
+
+[tool.coverage.run]
+omit = [
+    "*/tests/*",
+    ]
+
+[tool.ruff]
+
+include = [
+    "unidock/unidock_processing/*.py",
+]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    "unidock/unidock_configureations.yaml",
+]
+
+line-length = 120
+indent-width = 4
+
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E1", "E4", "E5", "E7", "E9", "F", "W"]
+ignore = []
+
+fixable = ["ALL"]
+unfixable = []
+
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "double"
+
+indent-style = "space"
+
+skip-magic-trailing-comma = false
+
+line-ending = "auto"
+
+docstring-code-format = false
+
+docstring-code-line-length = "dynamic"

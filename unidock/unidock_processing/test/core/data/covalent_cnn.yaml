@@ -1,0 +1,36 @@
+Advanced:
+  seed: 1234567
+  exhaustiveness: 512
+  randomize: true
+  mc_steps: 40
+  opt_steps: 15
+  refine_steps: 5
+  rmsd_limit: 1.0
+  num_pose: 3
+  rescore_pool: 10
+  energy_range: 5.0
+  tor_lib: false
+  ff_minimize_steps: 0
+  ligand_dms: /work/run1/lig.dms
+  protein_dms: /work/run1/rec.dms
+
+Hardware:
+  ncpu: 8
+
+Settings:
+  task: screen
+  search_mode: balance
+  constraint_docking: true
+  decomp: false
+  center_x: 5.122
+  center_y: 18.327
+  center_z: 37.332
+  size_x: 30.0
+  size_y: 30.0
+  size_z: 30.0
+
+Outputs:
+  dir: /work/run1/unidock2_output
+
+Inputs:
+
