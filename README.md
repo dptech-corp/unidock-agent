@@ -28,7 +28,7 @@ Install from this repository. The `unidock2` conda package on the Uni-Dock2 cond
 not unidock-agent: it has none of the bundled plugins or the changes above.
 
 `scripts/install.sh` runs steps 1–3 below in one go and checks the result:
-`UD2_CHANNEL=<channel> bash scripts/install.sh [--profile gpu] [--name NAME]`.
+`UD2_CHANNEL=http://quetz.dp.tech:8088/get/baymax bash scripts/install.sh [--profile gpu] [--name NAME]`.
 For environment choices, full verification, shared-disk/GPU setup and troubleshooting, see
 [docs/installation.md](docs/installation.md).
 
@@ -39,6 +39,8 @@ git clone https://github.com/dptech-corp/unidock-agent.git
 cd unidock-agent
 
 # UD2_CHANNEL: the Uni-Dock2 conda channel, which serves msys_viparr_lpsolve55 and ambertools_stable
+export UD2_CHANNEL=http://quetz.dp.tech:8088/get/baymax
+
 # GPU (Linux, an NVIDIA GPU of compute capability 7.0, 8.0, 8.6, 8.9 or 9.0; tested with driver 535, CUDA 12.2)
 conda create -n unidock-agent -c "$UD2_CHANNEL" -c conda-forge --no-repodata-use-zst \
     python=3.10 cuda-version=12.9 pyyaml pydantic pathos numpy scipy pandas networkx rdkit mdanalysis pdbfixer openmm \
