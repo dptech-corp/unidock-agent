@@ -22,6 +22,7 @@ unidock/example/screening_test/test_dock
 unidock_tools/dist
 unidock_tools/dist/*
 *.egg-info
+/dist/conda/
 torsion_library.pkl
 _version.py
 test_ud2

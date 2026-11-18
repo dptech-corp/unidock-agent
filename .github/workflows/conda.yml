@@ -1,0 +1,124 @@
+name: Conda packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      build:
+        description: 'Conda build number (use a higher number when republishing a version)'
+        type: string
+        required: true
+        default: '0'
+
+permissions:
+  contents: read
+
+env:
+  QUETZ_SERVER_URL: ${{ vars.QUETZ_SERVER_URL }}
+  CONDA_CHANNEL: baymax
+  RATTLER_ZSTD: 'true'
+  RATTLER_SHARDED: 'false'
+  RATTLER_BZ2: 'false'
+
+jobs:
+  build-and-publish:
+    if: github.event_name != 'push' || !github.event.deleted
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read and validate version
+        env:
+          BUILD: ${{ inputs.build || '0' }}
+        run: |
+          set -euo pipefail
+          VERSION=0.0.0.dev0
+          if [[ ! "$BUILD" =~ ^(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid Conda build number: $BUILD" >&2
+            exit 1
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            tag_pattern='^v[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+|\.(dev|post)[0-9]+)?$'
+            if [[ ! "$GITHUB_REF_NAME" =~ $tag_pattern ]]; then
+              echo "Invalid release tag: $GITHUB_REF_NAME" >&2
+              exit 1
+            fi
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          printf 'VERSION=%s\nBUILD=%s\n' "$VERSION" "$BUILD" >> "$GITHUB_ENV"
+          printf 'Building unidock-agent version=%s build=%s\n' "$VERSION" "$BUILD"
+
+      - name: Install rattler-build
+        uses: prefix-dev/rattler-build-action@v0.2.39
+        with:
+          setup-only: true
+          rattler-build-version: v0.55.1
+
+      - name: Make room for the CUDA toolkit and PyTorch on the hosted runner
+        run: sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+
+      - name: Build and test engine and selector packages
+        run: |
+          set -euo pipefail
+          : "${QUETZ_SERVER_URL:?Set the QUETZ_SERVER_URL repository variable}"
+          quetz="${QUETZ_SERVER_URL%/}/get/$CONDA_CHANNEL"
+          export BACKEND
+          for BACKEND in cpu cuda128; do
+            channels=(-c "$quetz" -c conda-forge)
+            if [[ "$BACKEND" == cuda128 ]]; then
+              # Hosted runners can compile CUDA and import torch without a GPU.
+              export CONDA_OVERRIDE_CUDA=12.8
+              channels=(-c conda-forge -c "$quetz" -c anaconda --channel-priority disabled)
+            fi
+            for recipe in conda-recipe/recipe.yaml conda-recipe/selectors; do
+              rattler-build build -r "$recipe" --target-platform linux-64 \
+                --package-format conda --test native --output-dir dist/conda "${channels[@]}"
+            done
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: conda-linux-64
+          path: dist/conda/linux-64/*.conda
+          if-no-files-found: error
+
+      - name: Upload to Quetz
+        if: startsWith(github.ref, 'refs/tags/v')
+        working-directory: dist/conda/linux-64
+        env:
+          QUETZ_API_KEY: ${{ secrets.QUETZ_API_KEY }}
+        run: |
+          set -euo pipefail
+          : "${QUETZ_API_KEY:?Set the QUETZ_API_KEY repository secret}"
+          # Quetz requires a package entry for each new name before its first upload.
+          files=(unidock-agent-"$VERSION"-{cpu,cuda128}_py310_"$BUILD".conda {unidock-agent,ud2align}-{cpu,gpu}-"$VERSION"-"$BUILD".conda)
+          for file in "${files[@]}"; do test -f "$file"; done
+          api="${QUETZ_SERVER_URL%/}/api/channels/$CONDA_CHANNEL/packages"
+          for name in unidock-agent unidock-agent-{cpu,gpu} ud2align-{cpu,gpu}; do
+            echo "Checking Quetz package entry: $name"
+            curl -fsS --max-time 30 -o /dev/null "$api/$name"
+          done
+          for filename in "${files[@]}"; do
+            name=${filename%-"${VERSION}"-*}
+            url="${QUETZ_SERVER_URL%/}/get/$CONDA_CHANNEL/linux-64/$filename"
+            download="$RUNNER_TEMP/$filename"
+            status=$(curl -sSL --max-time 120 -o "$download" -w '%{http_code}' "$url")
+            if [[ "$status" == 404 ]]; then
+              curl --fail-with-body --show-error --silent \
+                --connect-timeout 20 --max-time 600 \
+                --header "X-API-Key: $QUETZ_API_KEY" \
+                --form "files=@$filename" --form 'force=false' \
+                "$api/$name/files/"
+              curl -fsSL --max-time 120 -o "$download" "$url"
+            elif [[ "$status" != 200 ]]; then
+              echo "Unexpected HTTP $status for $filename" >&2
+              exit 1
+            fi
+            cmp "$filename" "$download"
+          done

@@ -24,7 +24,35 @@ the `unidock_processing` and `unidock_engine` packages.
 
 ## Installation
 
-Install from this repository. The `unidock2` conda package on the Uni-Dock2 conda channel is a Uni-Dock2 build (0.6.x),
+### Conda release (Linux x86-64)
+
+Once the CPU and CUDA packages are published to Baymax, create a Python 3.10 environment with the alignment
+plugin and the CUDA 12.8 engine in one transaction:
+
+```sh
+conda create -n ud2 python=3.10 ud2align-gpu \
+    -c conda-forge -c http://quetz.dp.tech:8088/get/baymax -c anaconda
+conda activate ud2
+```
+
+`ud2align-gpu` selects the GPU engine and CUDA 12.8 PyTorch for CNN rescoring. Install on a GPU node where
+Conda detects an NVIDIA driver supporting CUDA 12.8 or newer. If your Conda configuration uses strict
+channel priority, append `--no-channel-priority` to the create command so it can select the matching
+PyTorch and libtorch builds from Anaconda. This option applies to that command only.
+
+For CPU docking, including on a GPU machine, use:
+
+```sh
+conda create -n ud2-cpu python=3.10 ud2align-cpu \
+    -c http://quetz.dp.tech:8088/get/baymax -c conda-forge
+```
+
+Use `unidock-agent-gpu` or `unidock-agent-cpu` in the same commands for the engine without the alignment plugin.
+Both variants include PyTorch. The CPU build supports docking, while the CLI's CNN rescoring stage requires CUDA.
+
+### Build from source
+
+The `unidock2` conda package on the Uni-Dock2 conda channel is a Uni-Dock2 build (0.6.x),
 not unidock-agent: it has none of the bundled plugins or the changes above.
 
 `scripts/install.sh` runs steps 1–3 below in one go and checks the result:

@@ -1,6 +1,9 @@
 # Installation guide
 
-This guide installs unidock-agent into a conda environment, builds the engine, and checks the result. The short
+For prebuilt CPU and CUDA 12.8 packages, see the [Conda release commands](../README.md#conda-release-linux-x86-64).
+The CUDA release also targets sm_75 and sm_120 (RTX 50 series).
+
+This guide builds unidock-agent from source in a conda environment and checks the result. The short
 version is README "Installation" (steps 1–4) or `scripts/install.sh`; this page adds the choices behind each step, the
 checks that prove the install works, and the known failure modes.
 
@@ -23,8 +26,8 @@ Two conda channels are used:
   before any command below: `export UD2_CHANNEL=<channel URL>`.
 - **conda-forge**, for everything else. A conda-forge mirror can replace `-c conda-forge` if the default is slow.
 
-The engine carries GPU machine code for sm_70/80/86/89/90 and no PTX, so a GPU of another architecture (for example
-sm_75: T4, RTX 20; sm_120: RTX 50) is expected to fail with "no kernel image available". This has not been tested.
+The source build defaults to sm_70/80/86/89/90. Set `CMAKE_CUDA_ARCHITECTURES` at CMake configure time to
+target other GPUs with a toolkit that supports their compute capability.
 
 ## 2. Quick install
 
@@ -255,6 +258,7 @@ export OPENMM_PLUGIN_DIR="$CPU_PLUGINS"
 | `ud2` is not found | Add the engine's `site-packages/unidock_engine/api/python/bin` directory to PATH as shown in section 3.2. |
 | `unidock_processing` has version `0.0.0` | The source tree has no git metadata. This is the configured fallback version and does not change runtime behaviour. |
 | `mkdtemp` or temporary-directory error | `Preprocessing.temp_dir_name` or `$TMPDIR` does not exist; create it first. |
+| CNN rescoring raises `getpwuid(): uid not found` in a container | The CNN socket lookup uses the current username. Give the container user a passwd entry or set `USER` to its username. |
 | `--cnn_rescore` reports unsupported PTX | A conda-forge molgrid build is being used with an older driver. Remove that package and build with `scripts/build_molgrid.sh`, or set `UD2_CNN_GRIDDER=torch`. |
 | `import molgrid` fails after installing OpenBabel 3.2 | Use OpenBabel 3.1 for molgrid 0.5.5. |
 | `no kernel image is available` | The GPU architecture is not in the engine or libmolgrid build. Rebuild for that architecture where supported. |

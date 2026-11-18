@@ -1,0 +1,127 @@
+context:
+  version: ${{ env.get("VERSION", default="0.0.0") }}
+  build_number: ${{ env.get("BUILD", default="0") | int }}
+  backend: ${{ env.get("BACKEND", default="cpu") }}
+  # Anaconda's CUDA 12.8 PyTorch requires mutex >=5.1. Its 1_gnu build supplies
+  # libgomp.so.1 for conda-forge's libgomp, while 52_gnu leaves that path absent.
+  cuda_openmp_mutex: _openmp_mutex ==5.1 1_gnu
+
+package:
+  name: unidock-agent
+  version: ${{ version }}
+
+source:
+  path: ..
+  filter:
+    include:
+      - unidock/**
+      - pyproject.toml
+      - README.md
+      - LICENSE
+    exclude:
+      - unidock/unidock_processing/**/test*/**
+
+build:
+  number: ${{ build_number }}
+  string: ${{ backend }}_py310_${{ build_number }}
+  variant:
+    down_prioritize_variant: ${{ 1 if backend == "cpu" else 0 }}
+  skip: target_platform != "linux-64"
+  script:
+    file: build.sh
+    env:
+      BACKEND: ${{ backend }}
+
+requirements:
+  build:
+    - ${{ compiler('c') }} ${{ '13.*' if backend == 'cuda128' else '*' }}
+    - ${{ compiler('cxx') }} ${{ '13.*' if backend == 'cuda128' else '*' }}
+    - sysroot_linux-64 2.17.*
+    - cmake
+    - ninja
+    - if: backend == "cuda128"
+      then:
+        - cuda-version 12.8.*
+        - cuda-nvcc 12.8.*
+  host:
+    - if: backend == "cuda128"
+      then:
+        - cuda-version 12.8.*
+        - cuda-cudart-dev
+        - cuda-cudart-static
+        - libcurand-dev
+        - ${{ cuda_openmp_mutex }}
+    - python 3.10.*
+    - pip
+    - setuptools
+    - setuptools-scm
+    - scikit-build-core
+    - pybind11
+    - wheel
+    # Generate the torsion library before shipping a read-only installation.
+    - dill
+    - rdkit
+    - mdanalysis
+    - msys_viparr_lpsolve55
+  run:
+    - python 3.10.*
+    - ${{ cuda_openmp_mutex if backend == "cuda128" else "_openmp_mutex * *_gnu" }}
+    - pyyaml
+    - pydantic >=2
+    - pathos
+    - numpy
+    - scipy
+    - pandas
+    - networkx
+    - rdkit
+    - mdanalysis
+    - pdbfixer
+    - openmm
+    - msys_viparr_lpsolve55
+    - ambertools_stable
+    - if: backend == "cuda128"
+      then:
+        - __cuda >=12.8
+        - cuda-version 12.8.*
+        - pytorch ==2.9.1 gpu_cuda128*
+        - libtorch ==2.9.1 gpu_cuda128*
+      else: pytorch * cpu*
+  run_constraints:
+    - unidock2-preview <0a0
+    - unidock2 <0a0
+
+tests:
+  - script:
+      - python -c "import ctypes, sys; ctypes.CDLL(sys.prefix + '/lib/libgomp.so.1')"
+      - ud2 --version
+      - if: backend == "cuda128"
+        then: python -c "import torch; assert torch.version.cuda == '12.8'"
+        else: python -c "import torch; assert torch.version.cuda is None"
+      - >-
+        python -c "import subprocess;
+        output = subprocess.check_output(['unidock2', '--version'], text=True);
+        print(output);
+        assert output.splitlines()[-1] == 'unidock2 ${{ version }}', output"
+      - unidock2 docking --help
+      - >-
+        python -c "from unidock_engine.api.python import pipeline;
+        from unidock_processing.core import engine;
+        print(pipeline.__file__, engine.__file__)"
+      - >-
+        python -c "from importlib.metadata import entry_points;
+        plugins = {ep.name: ep for ep in entry_points(group='unidock2.plugins')};
+        assert {'template', 'covalent'} <= plugins.keys(), plugins;
+        [plugins[name].load() for name in ('template', 'covalent')]"
+  - package_contents:
+      files:
+        - bin/ud2
+        - bin/unidock2
+        - lib/python3.10/site-packages/unidock_processing/torsion_library/data/torsion_library.pkl
+
+about:
+  summary: unidock-agent molecular docking engine and processing workflows
+  license: Apache-2.0
+  license_file:
+    - LICENSE
+    - unidock/unidock_engine/NOTICE
+    - unidock/unidock_processing/cnn_rescore/weights/NOTICE

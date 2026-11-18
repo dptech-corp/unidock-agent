@@ -1,0 +1,37 @@
+context:
+  version: ${{ env.get("VERSION", default="0.0.0") }}
+  build_number: ${{ env.get("BUILD", default="0") | int }}
+  backend: ${{ env.get("BACKEND", default="cpu") }}
+  selector: ${{ "gpu" if backend == "cuda128" else "cpu" }}
+
+recipe:
+  name: unidock-backend-selectors
+  version: ${{ version }}
+
+build:
+  number: ${{ build_number }}
+  string: ${{ build_number }}
+  skip: target_platform != "linux-64"
+
+outputs:
+  - package:
+      name: unidock-agent-${{ selector }}
+    requirements:
+      run:
+        - unidock-agent ==${{ version }} ${{ backend }}_py310_${{ build_number }}
+    tests:
+      - script: ud2 --version
+  - package:
+      name: ud2align-${{ selector }}
+    requirements:
+      run:
+        - ud2align >=2.0.1
+        - ${{ pin_subpackage("unidock-agent-" ~ selector, exact=True) }}
+    tests:
+      - script:
+          - ud2align-cli --version
+          - unidock2 docking --help | grep -- --bias_template_sdf
+
+about:
+  license: Apache-2.0
+  summary: Select the ${{ selector }} build of unidock-agent
