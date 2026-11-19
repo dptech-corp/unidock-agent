@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, Dict, Any
 import os
 import logging
 import shutil
+import signal
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,12 @@ def _build_minimal_dms_slice(working_dir_name: str, items: list) -> list:
     Module level, so the pool workers of ``UnidockProtocolRunner._build_minimal_ligand_dms`` can run it."""
     return [build_ligand_dms_minimal(temp_sdf, working_dir_name, mol=mol, write_annotations=False)
             for temp_sdf, mol in items]
+
+
+def _default_sigterm() -> None:
+    """Pool worker initializer: ``Pool.terminate`` counts on SIGTERM ending a worker, and gsd (imported through
+    MDAnalysis) replaces that action with a handler, which can leave a worker waiting on the pool's queue lock."""
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
 
 class UnidockProtocolRunner(object):
@@ -239,7 +246,7 @@ class UnidockProtocolRunner(object):
         try:
             size = -(-len(items) // n_workers)
             slices = [items[i:i + size] for i in range(0, len(items), size)]
-            with Pool(processes=len(slices)) as pool:
+            with Pool(processes=len(slices), initializer=_default_sigterm) as pool:
                 parts = pool.starmap(_build_minimal_dms_slice, [(self.working_dir_name, part) for part in slices])
         finally:
             Chem.SetDefaultPickleProperties(previous)
